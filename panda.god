@@ -71,20 +71,20 @@ God.watch do |w|
   end
 end
 
-God::Contacts::Email.message_settings = {
-  :from => 'admin@localhost'
-}
-
-God::Contacts::Email.server_settings = {
-  :address => "localhost",
-  :port => 25,
-  :domain => "pandastream.com"
-  # :authentication => :plain,
-  # :user_name => "john",
-  # :password => "s3kr3ts"
-}
-
-God.contact(:email) do |c|
-  c.name = 'admin'
-  c.email = 'admin@localhost'
-end
+#God::Contacts::Email.message_settings = {
+#  :from => 'admin@localhost'
+#}
+#
+#God::Contacts::Email.server_settings = {
+#  :address => "localhost",
+#  :port => 25,
+#  :domain => "pandastream.com"
+#  # :authentication => :plain,
+#  # :user_name => "john",
+#  # :password => "s3kr3ts"
+#}
+#
+#God.contact(:email) do |c|
+#  c.name = 'admin'
+#  c.email = 'admin@localhost'
+#end
