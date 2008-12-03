@@ -1,0 +1,87 @@
+# Change BIG_HOST, SECRET_KEY_FOR_PANDA_API, AWS_ACCESS_KEY, AWS_SECRET_ACCESS_KEY to real values
+
+require 'panda'
+
+Panda::Config.use do |p|
+  # p[:account_name]          = "OPTIONAL_STRING_TO_IDENTIFY_PANDA_INSTANCE"
+  
+  # ================================================
+  # API integration options
+  # ================================================
+  # The api_key allows your application to authenticate with Panda. You should 
+  # generate a random string to use as the key.
+  # 
+  # When a video has been uploaded panda (through the iframe or popup) Panda 
+  # will redirect to upload_redirect_url. This URL should exist on your 
+  # application. The $id in the url will be replaced by the videos' key.
+
+  p[:api_key]               = "SECRET_KEY_FOR_PANDA_API"
+  p[:upload_redirect_url]   = "http://BIG_HOST/videos/$id/done"
+  
+  # ============================================================
+  # Local storage. Public should be accessible from the internet
+  # ============================================================
+  
+  p[:private_tmp_path]      = "/var/tmp/videos"
+  # Defaults to tmp within the Panda public directory. Optionally configurable
+  # p[:public_tmp_path]       = "/var/www/images"
+  # p[:public_tmp_url]        = "http://images.app.com"
+  
+  # ================================================
+  # Storage location for uploaded and encoded videos
+  # ================================================
+  
+  # For S3 storage:
+  p[:videos_store]          = :s3
+  p[:videos_domain]         = "s3.amazonaws.com/bigvideo"
+  p[:s3_videos_bucket]      = "bigvideo"
+  
+  # For local filesystem storage:
+  # p[:videos_store]          = :filesystem
+  # p[:videos_domain]         = "localhost:4000/store"
+  # p[:public_videos_dir]     = Merb.root / "public" / "store"
+  
+  # ================================================
+  # AWS Details
+  # ================================================
+  
+  # For S3 and SimpleDB:
+
+  p[:access_key_id]         = "AWS_ACCESS_KEY"
+  p[:secret_access_key]     = "AWS_SECRET_ACCESS_KEY"
+  
+  # SimpleDB domains (you need only change these if you have multiple Panda 
+  # instances using your AWS account):
+  p[:sdb_videos_domain]     = "panda_videos"
+  p[:sdb_users_domain]      = "panda_users"
+  p[:sdb_profiles_domain]   = "panda_profiles"
+  
+  # ================================================
+  # Thumbnail
+  # ================================================
+  # If you set this option you will be able to change the thumbnail for a 
+  # video after a video has been encoded. This many thumbnail options will 
+  # automatically be generated. The positions of these clipping will be 
+  # equally distributed throughout the video.
+  
+  # p[:choose_thumbnail]      = 6 
+  
+  # ================================================
+  # Application notification
+  # ================================================
+  # Panda will send your application a notfication when a video has finished
+  # encoding. If it fails it will retry notification_retries times. These 
+  # values are the defaults and should work for most applications.
+  
+  p[:notification_retries]   = 6
+  p[:notification_frequency] = 10
+  p[:state_update_url]       = "http://BIG_HOST/videos/$id/status"
+  
+  # ================================================
+  # Get emailed error messages
+  # ================================================
+  # If you want errors emailed to you, when an encoding fails or panda fails 
+  # to post a notification to your application, fill in both values:
+  p[:notification_email]    = "devel@BIG_HOST"
+  p[:noreply_from]          = "panda@BIG_HOST"
+end
