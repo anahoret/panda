@@ -1,7 +1,7 @@
 class Videos < Application
   before :require_login, :only => [:index, :show, :destroy, :new, :create, :add_to_queue]
   before :set_video, :only => [:show, :destroy, :add_to_queue]
-  before :set_video_with_nice_errors, :only => [:form, :done, :state]
+  before :set_video_with_nice_errors, :only => [:upload_form, :done, :state]
 
   def index
     provides :html, :xml, :yaml
@@ -67,7 +67,7 @@ class Videos < Application
   end
   
   # Use: HQ, API, iframe upload
-  def form
+  def upload_form
     render :layout => :uploader
   end
   

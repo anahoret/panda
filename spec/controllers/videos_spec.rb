@@ -43,7 +43,7 @@ describe Videos, "form action" do
   
   it "should return a nice error when the video can't be found" do
     Video.should_receive(:find).with('qrs').and_raise(Amazon::SDB::RecordNotFoundError)
-    @c = get("/videos/qrs/form")
+    @c = get("/videos/qrs/upload_form")
     @c.body.should match(/RecordNotFoundError/)
   end
 end

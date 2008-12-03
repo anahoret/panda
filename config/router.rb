@@ -21,7 +21,7 @@
 
 Merb.logger.info("Compiling routes...")
 Merb::Router.prepare do |r|
-  r.resources :videos, :member => {:form => :get, :upload => :post, :done => :get, :state => :get, :add_to_queue => :get }, :collection => {:exp => :get} do |video|
+  r.resources :videos, :member => {:upload_form => :get, :upload => :post, :done => :get, :state => :get, :add_to_queue => :get }, :collection => {:exp => :get} do |video|
     video.resource :thumbnail
     # Using get requests right now for create and update
     video.match('/thumbnail/create').to(:controller => "thumbnail", :action => "create")
