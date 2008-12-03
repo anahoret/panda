@@ -373,8 +373,44 @@ describe Video do
     
     @video.add_to_queue
   end
-
-  # def show_response
+  
+  describe "show_response" do
+    before :each do
+      @encoding = Video.new
+      @encoding.filename = 'abc.flv'
+      @encoding.key = '1234'
+      
+      @video.stub!(:encodings).and_return([])
+    end
+    
+    it "should contain a hash of parameters for the video" do
+      @video.show_response.should == {
+        :video => {
+          :thumbnail=>"abc.mov_50_thumb.jpg", 
+          :height=>360, 
+          :filename=>"abc.mov", 
+          :screenshot=>"abc.mov_50.jpg", 
+          :status=>"original", 
+          :duration=>100, 
+          :original_filename=>"original_filename.mov", 
+          :width=>480, 
+          :encodings=> [], 
+          :id=>"abc"
+        }
+      }
+    end
+    
+    it "should contain an array of encodings if defined" do
+      @video.stub!(:encodings).and_return([@encoding])
+      
+      @video.show_response[:video][:encodings].first.should == {
+        :video => {
+          :status=>nil, 
+          :id=>"1234"
+        }
+      }
+    end
+  end
   
   it "should return correct API create response hash" do
     @video.create_response.should == {:video => {:id => 'abc'}}

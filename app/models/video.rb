@@ -353,10 +353,13 @@ class Video < SimpleDB::Base
   # API
   # ===
   
+  # Hash of paramenters for video and encodings when video.xml/yaml requested.
+  # 
+  # See the specs for an example of what this returns
+  # 
   def show_response
-    # :filename, :original_filename, :parent, :status, :duration, :container, :width, :height, :video_codec, :video_bitrate, :fps, :audio_codec, :audio_bitrate, :audio_sample_rate, :profile, :profile_title, :player, :encoding_time, :encoded_at, :updated_at, :created_at
-    
-    r = {:video => {
+    r = {
+      :video => {
         :id => self.key,
         :status => self.status
       }
@@ -364,7 +367,11 @@ class Video < SimpleDB::Base
     
     # Common attributes for originals and encodings
     if self.status == 'original' or self.encoding?
-      r[:video].merge!([:filename, :original_filename, :screenshot, :thumbnail, :width, :height, :duration].map_to_hash {|k| {k => self.send(k)} })
+      [:filename, :original_filename, :width, :height, :duration].each do |k|
+        r[:video][k] = self.send(k)
+      end
+      r[:video][:screenshot]  = self.clipping.filename(:screenshot)
+      r[:video][:thumbnail]   = self.clipping.filename(:thumbnail)
     end
     
     # If the video is a parent, also return the data for all its encodings
@@ -374,7 +381,9 @@ class Video < SimpleDB::Base
     
     # Reutrn extra attributes if the video is an encoding
     if self.encoding?
-      r[:video].merge!([:parent, :profile, :profile_title, :encoded_at, :encoding_time].map_to_hash {|k| {k => self.send(k)} })
+      r[:video].merge! \
+        [:parent, :profile, :profile_title, :encoded_at, :encoding_time].
+          map_to_hash { |k| {k => self.send(k)} }
     end
     
     return r
