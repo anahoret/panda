@@ -64,7 +64,7 @@ Panda::Config.use do |p|
   # automatically be generated. The positions of these clipping will be 
   # equally distributed throughout the video.
   
-  p[:choose_thumbnail]      = 6 
+  p[:choose_thumbnail]      = 16 
   
   # ================================================
   # Application notification
