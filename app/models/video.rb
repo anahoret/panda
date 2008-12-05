@@ -386,6 +386,10 @@ class Video < SimpleDB::Base
           map_to_hash { |k| {k => self.send(k)} }
     end
     
+    if self.status == 'original'
+      r[:video][:thumbnails] = self.clippings.map { |c| c.filename(:thumbnail) }.join(',')
+    end
+
     return r
   end
   
