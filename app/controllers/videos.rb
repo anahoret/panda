@@ -44,8 +44,12 @@ class Videos < Application
   # Use: HQ
   def destroy
     provides :html, :yaml
-    @video.obliterate!
-    
+
+    video = @video
+    run_later do
+      video.obliterate!
+    end
+
     case content_type
     when :html
       redirect "/videos"
