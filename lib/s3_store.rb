@@ -5,6 +5,9 @@ class S3VideoObject < AWS::S3::S3Object
 end
 
 class S3Store < AbstractStore
+
+  DELAY = 3
+
   def initialize
     raise Panda::ConfigError, "You must specify videos_domain and s3_videos_bucket to use s3 storage" unless Panda::Config[:videos_domain] && Panda::Config[:s3_videos_bucket]
     
@@ -22,10 +25,9 @@ class S3Store < AbstractStore
   # Set file. Returns true if success.
   def set(key, tmp_file)
     begin
-      retryable(:tries => 5) do
+      retryable(:tries => 5, :delay => DELAY) do
         Merb.logger.info "Upload to S3"
         S3VideoObject.store(key, File.open(tmp_file), :access => :public_read)
-        sleep 3
       end
     rescue AWS::S3::S3Exception
       Merb.logger.error "Error uploading #{key} to S3"
@@ -38,12 +40,11 @@ class S3Store < AbstractStore
   # Get file.
   def get(key, tmp_file)
     begin
-      retryable(:tries => 5) do
+      retryable(:tries => 5, :delay => DELAY) do
         File.open(tmp_file, 'w') do |file|
           Merb.logger.info "Fetch from S3"
           S3VideoObject.stream(key) {|chunk| file.write chunk}
         end
-        sleep 3
       end
     rescue AWS::S3::S3Exception
       raise_file_error(key)
@@ -55,10 +56,9 @@ class S3Store < AbstractStore
   # Delete file. Returns true if success.
   def delete(key)
     begin
-      retryable(:tries => 5) do
+      retryable(:tries => 5, :delay => DELAY) do
         Merb.logger.info "Deleting #{key} from S3"
         S3VideoObject.delete(key)
-        sleep 3
       end
     rescue AWS::S3::S3Exception
       raise_file_error(key)
