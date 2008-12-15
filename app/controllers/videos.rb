@@ -43,8 +43,15 @@ class Videos < Application
   
   # Use: HQ
   def destroy
+    provides :html, :yaml
     @video.obliterate!
-    redirect "/videos"
+    
+    case content_type
+    when :html
+      redirect "/videos"
+    when :yaml
+      @video.destroy_response.to_yaml
+    end
   end
 
   # Use: HQ, API

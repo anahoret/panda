@@ -3,6 +3,7 @@ require File.join( File.dirname(__FILE__), "..", "spec_helper" )
 describe S3Store do
   
   before :each do
+    Panda::Config[:s3_videos_bucket] = 'fake_bucket'
     @store = S3Store.new
     
     @fp = mock(File)

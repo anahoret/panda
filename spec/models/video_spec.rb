@@ -387,10 +387,10 @@ describe Video do
       @video.show_response.should == {
         :video => {
           :thumbnail=>"abc.mov_50_thumb.jpg", 
+          :thumbnails=>"abc.mov_33_thumb.jpg,abc.mov_66_thumb.jpg",
           :height=>360, 
           :filename=>"abc.mov", 
-          :screenshot=>"abc.mov_50.jpg",
-          :thumbnails=>"abc.mov_33_thumb.jpg,abc.mov_66_thumb.jpg", 
+          :screenshot=>"abc.mov_50.jpg", 
           :status=>"original", 
           :duration=>100, 
           :original_filename=>"original_filename.mov", 

@@ -399,6 +399,10 @@ class Video < SimpleDB::Base
       }
     }
   end
+
+  def destroy_response
+    {}
+  end
   
   # Notifications
   # =============

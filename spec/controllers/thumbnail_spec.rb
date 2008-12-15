@@ -48,6 +48,7 @@ describe Thumbnail do
       @video.should_receive(:save)
       
       dispatch
+      Merb::Dispatcher.work_queue.pop.call
     end
 
     it "should upload clipping to store (for video and encodings)" do
@@ -55,6 +56,7 @@ describe Thumbnail do
       @enc_clipping.should_receive(:set_as_default)
       
       dispatch
+      Merb::Dispatcher.work_queue.pop.call
     end
     
     it "should redirect to video page" do
