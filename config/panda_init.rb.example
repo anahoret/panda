@@ -33,6 +33,7 @@ Panda::Config.use do |p|
   p[:videos_store]          = :s3
   p[:videos_domain]         = "s3.amazonaws.com/S3_BUCKET"
   p[:s3_videos_bucket]      = "S3_BUCKET"
+  p[:s3_delay_before_next_try] = 3.seconds.to_i
   
   # For local filesystem storage:
   # p[:videos_store]          = :filesystem

@@ -567,13 +567,14 @@ describe Video do
     transcoder.should_receive(:execute).with(
       "ffmpeg -i $input_file$ -ar 22050 -ab $audio_bitrate$k -f flv -b $video_bitrate_in_bits$ -r 24 $resolution_and_padding$ -y $output_file$\nflvtool2 -U $output_file$", nil)
     encoding.should_receive(:recipe_options).with('/tmp/abc.mov', '/tmp/xyz.flv')
-    
+
     encoding.encode_flv_flash
   end
   
   it "should run correct ffmpeg command to encode to an mp4 for the flash player" do
     encoding = mock_encoding_mp4_aac_flash
     encoding.stub!(:parent_video).and_return(@video)
+    encoding.stub!(:"`")
     transcoder = mock(RVideo::Transcoder)
     RVideo::Transcoder.should_receive(:new).and_return(transcoder)
     
