@@ -266,8 +266,6 @@ class Video < SimpleDB::Base
     self.thumbnail_position = self.thumbnail_percentages.first
     self.save
     
-    self.add_to_queue
-    
     FileUtils.rm self.tmp_filepath
   end
   
@@ -297,7 +295,7 @@ class Video < SimpleDB::Base
     # Don't allow videos with a duration of 0
     raise FormatNotRecognised if self.duration == 0
   end
-  
+  #FIXME this method should be deleted
   def create_encoding_for_profile(p)
     encoding = Video.new
     encoding.status = 'queued'
@@ -316,6 +314,31 @@ class Video < SimpleDB::Base
       encoding.send("#{k}=", p.get(k))
     end
     
+    encoding.save
+    return encoding
+  end
+
+  def create_encoding(p)
+    encoding = Video.new
+    encoding.status = 'queued'
+    encoding.filename = "#{encoding.key}.#{p["container"]}"
+    
+    # Attrs from the parent video
+    encoding.parent = self.key
+    [:original_filename, :duration].each do |k|
+      encoding.send("#{k}=", self.get(k))
+    end
+    
+    # Attrs from the profile
+    encoding.profile_title = p["title"]
+    [:container, :video_codec, :audio_codec].each do |k|
+      encoding.send("#{k}=", p[k.to_s])
+    end
+    
+    [:width, :height, :video_bitrate, :fps, :audio_bitrate, :audio_sample_rate].each do |k|
+      encoding.send("#{k}=", p[k.to_s].to_i)
+    end
+
     encoding.save
     return encoding
   end
@@ -621,9 +644,9 @@ RESPONSE
     
       parent_obj.fetch_from_store
 
-      if self.container == "flv" and self.player == "flash"
+     if self.container == "flv" 
         self.encode_flv_flash
-      elsif self.container == "mp4" and self.audio_codec == "aac" and self.player == "flash"
+      elsif self.container == "mp4" and self.audio_codec == "aac"
         self.encode_mp4_aac_flash
       else # Try straight ffmpeg encode
         self.encode_unknown_format

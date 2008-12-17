@@ -1,6 +1,6 @@
 class Videos < Application
-  before :require_login, :only => [:index, :show, :destroy, :new, :create, :add_to_queue]
-  before :set_video, :only => [:show, :destroy, :add_to_queue]
+  before :require_login, :only => [:index, :show, :destroy, :new, :create, :add_to_queue, :queue_encoding]
+  before :set_video, :only => [:show, :destroy, :add_to_queue, :queue_encoding]
   before :set_video_with_nice_errors, :only => [:upload_form, :done, :state]
 
   def index
@@ -41,7 +41,7 @@ class Videos < Application
     render :layout => :simple
   end
   
-  # Use: HQ
+  # Use: HQ, API
   def destroy
     provides :html, :yaml
 
@@ -56,6 +56,12 @@ class Videos < Application
     when :yaml
       @video.destroy_response.to_yaml
     end
+  end
+
+  # Use: API
+  def queue_encoding
+    @video.create_encoding params[:profile]
+    'OK'
   end
 
   # Use: HQ, API

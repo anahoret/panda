@@ -326,8 +326,8 @@ describe Video do
       end
     end
     
-    it "should add encodings to queue" do
-      @video.should_receive(:add_to_queue).and_return(true)
+    it "should not add encodings to queue" do
+      @video.should_receive(:add_to_queue).never
       @video.finish_processing_and_queue_encodings
     end
     
