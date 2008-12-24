@@ -60,8 +60,8 @@ class Videos < Application
 
   # Use: API
   def queue_encoding
-    @video.create_encoding params[:profile]
-    'OK'
+    encoding = @video.create_encoding params[:profile]
+    encoding.key
   end
 
   # Use: HQ, API

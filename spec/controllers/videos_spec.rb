@@ -51,14 +51,17 @@ describe Videos, "queue_encoding" do
   before(:each) do
     @video = Video.new
     @profile_hash = { 'key' => 'value' }
+    @encoding = Video.new
+    @encoding.key = "encoding_key"
   end
 
   it "should invoke Video#create_encoding" do
+  
     Video.should_receive(:find).with('fake_id').and_return(@video)
-    @video.should_receive(:create_encoding).with(@profile_hash)
+    @video.should_receive(:create_encoding).with(@profile_hash).and_return(@encoding)
 
-    c = post('/videos/fake_id/queue_encoding.yaml', { :profile => @profile_hash, :account_key => Panda::Config[:api_key] })
-    c.body.should == 'OK'
+    response = post('/videos/fake_id/queue_encoding.yaml', { :profile => @profile_hash, :account_key => Panda::Config[:api_key] })
+    response.body.should == @encoding.key
   end
 end
 

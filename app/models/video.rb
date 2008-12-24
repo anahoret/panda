@@ -331,6 +331,7 @@ class Video < SimpleDB::Base
     
     # Attrs from the profile
     encoding.profile_title = p["title"]
+    encoding.profile = p["id"]
     [:container, :video_codec, :audio_codec].each do |k|
       encoding.send("#{k}=", p[k.to_s])
     end
@@ -400,17 +401,14 @@ class Video < SimpleDB::Base
     # If the video is a parent, also return the data for all its encodings
     if self.status == 'original'
       r[:video][:encodings] = self.encodings.map {|e| e.show_response}
+      r[:video][:thumbnails] = self.clippings.map { |c| c.filename(:thumbnail) }.join(',')
     end
     
     # Reutrn extra attributes if the video is an encoding
     if self.encoding?
-      r[:video].merge! \
-        [:parent, :profile, :profile_title, :encoded_at, :encoding_time].
-          map_to_hash { |k| {k => self.send(k)} }
-    end
-    
-    if self.status == 'original'
-      r[:video][:thumbnails] = self.clippings.map { |c| c.filename(:thumbnail) }.join(',')
+      extra_attrs =  [:parent, :profile, :profile_title, :encoded_at, :encoding_time,
+        :video_codec, :video_bitrate, :fps, :audio_codec, :audio_bitrate, :audio_sample_rate]
+      r[:video].merge! extra_attrs.map_to_hash { |k| {k => self.send(k)} }
     end
 
     return r
