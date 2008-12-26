@@ -336,7 +336,7 @@ class Video < SimpleDB::Base
       encoding.send("#{k}=", p[k.to_s])
     end
     
-    [:width, :height, :video_bitrate, :fps, :audio_bitrate, :audio_sample_rate].each do |k|
+    [:width, :height, :video_bitrate, :fps, :audio_bitrate].each do |k| #, :audio_sample_rate].each do |k|
       encoding.send("#{k}=", p[k.to_s].to_i)
     end
 
