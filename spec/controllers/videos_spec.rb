@@ -81,6 +81,7 @@ describe Videos, "upload action" do
     Video.stub!(:find).with("abc").and_return(@video)
     
     @video.stub!(:initial_processing)
+    @video.stub!(:send_status_update_to_client)
   end
   
   it "should run initial processing" do

@@ -336,7 +336,7 @@ class Video < SimpleDB::Base
       encoding.send("#{k}=", p[k.to_s])
     end
     
-    [:width, :height, :video_bitrate, :fps, :audio_bitrate].each do |k| #, :audio_sample_rate].each do |k|
+    [:width, :height, :video_bitrate, :fps, :audio_bitrate].each do |k| 
       encoding.send("#{k}=", p[k.to_s].to_i)
     end
 
@@ -344,24 +344,7 @@ class Video < SimpleDB::Base
     return encoding
   end
   
-  # TODO: Breakout Profile adding into a different method
-  def add_to_queue
-    # Die if there's no profiles!
-    if Profile.query.empty?
-      Merb.logger.error "There are no encoding profiles!"
-      return nil
-    end
-    
-    # TODO: Allow manual selection of encoding profiles used in both form and api
-    # For now we will just encode to all available profiles
-    Profile.query.each do |p|
-      if self.find_encoding_for_profile(p).empty?
-        self.create_encoding_for_profile(p)
-      end
-    end
-    return true
-  end
-  
+ 
   # Exceptions
   
   class VideoError < StandardError; end

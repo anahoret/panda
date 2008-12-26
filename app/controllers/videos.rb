@@ -93,6 +93,7 @@ class Videos < Application
     begin
       @video = Video.find(params[:id])
       @video.initial_processing(params[:file])
+      @video.send_status_update_to_client
     rescue Amazon::SDB::RecordNotFoundError
       # No empty video object exists
       self.status = 404
