@@ -58,7 +58,7 @@ describe Videos, "queue_encoding" do
   it "should invoke Video#create_encoding" do
   
     Video.should_receive(:find).with('fake_id').and_return(@video)
-    @video.should_receive(:create_encoding).with(@profile_hash).and_return(@encoding)
+    @video.should_receive(:create_encoding).with(@profile_hash, {}).and_return(@encoding)
 
     response = post('/videos/fake_id/queue_encoding.yaml', { :profile => @profile_hash, :account_key => Panda::Config[:api_key] })
     response.body.should == @encoding.key

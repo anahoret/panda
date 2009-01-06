@@ -3,7 +3,7 @@ class Video < SimpleDB::Base
   include LocalStore
   
   set_domain Panda::Config[:sdb_videos_domain]
-  properties :filename, :original_filename, :parent, :status, :duration, :container, :width, :height, :video_codec, :video_bitrate, :fps, :audio_codec, :audio_bitrate, :audio_sample_rate, :profile, :profile_title, :player, :queued_at, :started_encoding_at, :encoding_time, :encoded_at, :last_notification_at, :notification, :updated_at, :created_at, :thumbnail_position
+  properties :filename, :original_filename, :parent, :status, :duration, :container, :width, :height, :video_codec, :video_bitrate, :fps, :audio_codec, :audio_bitrate, :audio_sample_rate, :profile, :profile_title, :player, :queued_at, :started_encoding_at, :encoding_time, :encoded_at, :last_notification_at, :notification, :updated_at, :created_at, :thumbnail_position, :cut_start, :cut_end
   
   # TODO: state machine for status
   # An original video can either be 'empty' if it hasn't had the video file uploaded, or 'original' if it has
@@ -318,7 +318,7 @@ class Video < SimpleDB::Base
     return encoding
   end
 
-  def create_encoding(p)
+  def create_encoding(p, options)
     encoding = Video.new
     encoding.status = 'queued'
     encoding.filename = "#{encoding.key}.#{p["container"]}"
@@ -338,6 +338,11 @@ class Video < SimpleDB::Base
     
     [:width, :height, :video_bitrate, :fps, :audio_bitrate].each do |k| 
       encoding.send("#{k}=", p[k.to_s].to_i)
+    end
+
+    if options[:start] && options[:end]
+      encoding.cut_start = options['start']
+      encoding.cut_end = options['end']
     end
 
     encoding.save
@@ -542,6 +547,11 @@ RESPONSE
   end
   
   def recipe_options(input_file, output_file)
+    cut_options = ""
+    if self.cut_start && self.cut_end
+      cut_options = "-ss #{self.cut_start} -t #{self.cut_end.to_i - self.cut_start.to_i}"
+    end
+
     {
       :input_file => input_file,
       :output_file => output_file,
@@ -554,14 +564,15 @@ RESPONSE
       :audio_bitrate_in_bits => self.audio_bitrate_in_bits.to_s, 
       :audio_sample_rate => self.audio_sample_rate.to_s, 
       :resolution => self.resolution,
-      :resolution_and_padding => self.ffmpeg_resolution_and_padding_no_cropping
+      :resolution_and_padding => self.ffmpeg_resolution_and_padding_no_cropping,
+      :cut_options => cut_options
     }
   end
   
   def encode_flv_flash
     Merb.logger.info "Encoding with encode_flv_flash"
     transcoder = RVideo::Transcoder.new
-    recipe = "ffmpeg -i $input_file$ -ar 22050 -ab $audio_bitrate$k -f flv -b $video_bitrate_in_bits$ -r 24 $resolution_and_padding$ -y $output_file$"
+    recipe = "ffmpeg -i $input_file$ -ar 22050 -ab $audio_bitrate$k -f flv -b $video_bitrate_in_bits$ -r 24 $resolution_and_padding$ $cut_options$ -y $output_file$"
     recipe += "\nflvtool2 -U $output_file$"
     transcoder.execute(recipe, self.recipe_options(self.parent_video.tmp_filepath, self.tmp_filepath))
   end
@@ -574,8 +585,8 @@ RESPONSE
     temp_audio_output_file = "#{self.tmp_filepath}.temp.audio.mp4"
     temp_audio_output_wav_file = "#{self.tmp_filepath}.temp.audio.wav"
 
-    recipe = "ffmpeg -i $input_file$ -b $video_bitrate_in_bits$ -an -vcodec libx264 -rc_eq 'blurCplx^(1-qComp)' -qcomp 0.6 -qmin 10 -qmax 51 -qdiff 4 -coder 1 -flags +loop -cmp +chroma -partitions +parti4x4+partp8x8+partb8x8 -me hex -subq 5 -me_range 16 -g 6 -keyint_min 25 -sc_threshold 40 -i_qfactor 0.71 $resolution_and_padding$ -r 24 -threads 4 -y $output_file$"
-    recipe_audio_extraction = "ffmpeg -i $input_file$ -ar 48000 -ac 2 -y $output_file$"
+    recipe = "ffmpeg -i $input_file$ -b $video_bitrate_in_bits$ -an -vcodec libx264 -rc_eq 'blurCplx^(1-qComp)' $cut_options$ -qcomp 0.6 -qmin 10 -qmax 51 -qdiff 4 -coder 1 -flags +loop -cmp +chroma -partitions +parti4x4+partp8x8+partb8x8 -me hex -subq 5 -me_range 16 -g 6 -keyint_min 25 -sc_threshold 40 -i_qfactor 0.71 $resolution_and_padding$ $cut_options$ -r 24 -threads 4 -y $output_file$"
+    recipe_audio_extraction = "ffmpeg -i $input_file$ -ar 48000 -ac 2 $cut_options$ -y $output_file$"
 
     transcoder.execute(recipe, self.recipe_options(self.parent_video.tmp_filepath, temp_video_output_file))
     
@@ -606,7 +617,7 @@ RESPONSE
   def encode_unknown_format
     Merb.logger.info "Encoding with encode_unknown_format"
     transcoder = RVideo::Transcoder.new
-    recipe = "ffmpeg -i $input_file$ -f $container$ -vcodec $video_codec$ -b $video_bitrate_in_bits$ -ar $audio_sample_rate$ -ab $audio_bitrate$k -acodec $audio_codec$ -r 24 $resolution_and_padding$ -y $output_file$"
+    recipe = "ffmpeg -i $input_file$ -f $container$ -vcodec $video_codec$ -b $video_bitrate_in_bits$ $cut_options$ -ar $audio_sample_rate$ -ab $audio_bitrate$k -acodec $audio_codec$ -r 24 $resolution_and_padding$ -y $output_file$"
     Merb.logger.info "Unknown encoding format given but trying to encode anyway."
     transcoder.execute(recipe, recipe_options(self.parent_video.tmp_filepath, self.tmp_filepath))
   end
