@@ -565,7 +565,7 @@ describe Video do
     RVideo::Transcoder.should_receive(:new).and_return(transcoder)
     
     transcoder.should_receive(:execute).with(
-      "ffmpeg -i $input_file$ -ar 22050 -ab $audio_bitrate$k -f flv -b $video_bitrate_in_bits$ -r 24 $resolution_and_padding$ -y $output_file$\nflvtool2 -U $output_file$", nil)
+      "ffmpeg -i $input_file$ -ar 22050 -ab $audio_bitrate$k -f flv -b $video_bitrate_in_bits$ -r 24 $resolution_and_padding$ $cut_options$ -y $output_file$\nflvtool2 -U $output_file$", nil)
     encoding.should_receive(:recipe_options).with('/tmp/abc.mov', '/tmp/xyz.flv')
 
     encoding.encode_flv_flash
@@ -579,12 +579,12 @@ describe Video do
     RVideo::Transcoder.should_receive(:new).and_return(transcoder)
     
     transcoder.should_receive(:execute).with(
-      "ffmpeg -i $input_file$ -b $video_bitrate_in_bits$ -an -vcodec libx264 -rc_eq 'blurCplx^(1-qComp)' -qcomp 0.6 -qmin 10 -qmax 51 -qdiff 4 -coder 1 -flags +loop -cmp +chroma -partitions +parti4x4+partp8x8+partb8x8 -me hex -subq 5 -me_range 16 -g 250 -keyint_min 25 -sc_threshold 40 -i_qfactor 0.71 $resolution_and_padding$ -r 24 -threads 4 -y $output_file$", nil) # No need to test the 2nd parameter for recepie options which is tested in another test
+      "ffmpeg -i $input_file$ -b $video_bitrate_in_bits$ -an -vcodec libx264 -rc_eq 'blurCplx^(1-qComp)' $cut_options$ -qcomp 0.6 -qmin 10 -qmax 51 -qdiff 4 -coder 1 -flags +loop -cmp +chroma -partitions +parti4x4+partp8x8+partb8x8 -me hex -subq 5 -me_range 16 -g 6 -keyint_min 25 -sc_threshold 40 -i_qfactor 0.71 $resolution_and_padding$ -r 24 -threads 4 -y $output_file$", nil) # No need to test the 2nd parameter for recepie options which is tested in another test
     encoding.should_receive(:recipe_options).with('/tmp/abc.mov', '/tmp/xyz.mp4.temp.video.mp4')
 
     # Testing separate audio extraction and encoding for flash h264
     transcoder.should_receive(:execute).with(
-      "ffmpeg -i $input_file$ -ar 48000 -ac 2 -y $output_file$", nil)
+      "ffmpeg -i $input_file$ -ar 48000 -ac 2 $cut_options$ -y $output_file$", nil)
     encoding.should_receive(:recipe_options).with('/tmp/abc.mov', '/tmp/xyz.mp4.temp.audio.wav')
 
     # rm video file before we use MP4Box, otherwise we end up with multiple AV streams if the videos has been encoded more than once!
@@ -593,7 +593,7 @@ describe Video do
     
     encoding.encode_mp4_aac_flash
   end
-  
+
   it "should run correct ffmpeg command to encode to an unknown format" do
     encoding = mock_encoding_flv_flash
     encoding.stub!(:parent_video).and_return(@video)
@@ -601,7 +601,7 @@ describe Video do
     RVideo::Transcoder.should_receive(:new).and_return(transcoder)
     
     transcoder.should_receive(:execute).with(
-      "ffmpeg -i $input_file$ -f $container$ -vcodec $video_codec$ -b $video_bitrate_in_bits$ -ar $audio_sample_rate$ -ab $audio_bitrate$k -acodec $audio_codec$ -r 24 $resolution_and_padding$ -y $output_file$", nil)
+      "ffmpeg -i $input_file$ -f $container$ -vcodec $video_codec$ -b $video_bitrate_in_bits$ $cut_options$ -ar $audio_sample_rate$ -ab $audio_bitrate$k -acodec $audio_codec$ -r 24 $resolution_and_padding$ -y $output_file$", nil)
     encoding.should_receive(:recipe_options).with('/tmp/abc.mov', '/tmp/xyz.flv')
     
     encoding.encode_unknown_format
