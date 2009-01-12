@@ -93,7 +93,7 @@ describe Videos, "upload action" do
   
   it "should redirect (via iframe hack)" do
     multipart_post(@video_upload_url, @video_upload_params) do |c|
-      c.should_receive(:render_then_call).with("<textarea>{\"location\": \"http://localhost:4000/videos/abc/done\"}</textarea>")
+      c.should_receive(:render).with("<textarea>{\"location\": \"http://localhost:4000/videos/abc/done\"}</textarea>")
       c.should be_successful
     end
   end

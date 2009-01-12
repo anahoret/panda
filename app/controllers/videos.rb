@@ -112,9 +112,12 @@ class Videos < Application
       render_error("InternalServerError", e)
     else
       redirect_url = @video.upload_redirect_url
-      render_then_call(iframe_params(:location => redirect_url)) do
+
+      run_later do
         @video.finish_processing_and_queue_encodings
       end
+
+      render iframe_params(:location => redirect_url)
     end
   end
   
