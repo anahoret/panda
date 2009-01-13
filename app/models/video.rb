@@ -231,21 +231,29 @@ class Video < SimpleDB::Base
   # {
   #   "content_type"=>"video/mp4", 
   #   "size"=>100, 
-  #   "tempfile" => @tempfile, 
+  #   "tempfile" => @tempfile,  # Also tempfile my be string with full path
   #   "filename" => "file.mov"
   # }
   # 
   def initial_processing(file)
     raise NoFileSubmitted if !file || file.blank?
     raise NotValid unless self.empty?
+
+    # Convert all keys to symbols if they are strings
+    file.symbolize_keys!
     
     # Set filename and original filename
     self.filename = self.key + File.extname(file[:filename])
     # Split out any directory path Windows adds in
     self.original_filename = file[:filename].split("\\\\").last
-    
-    # Move file into tmp location
-    FileUtils.mv file[:tempfile].path, self.tmp_filepath
+
+    if file[:tempfile].class == String
+      # Make link to file into tmp location
+      FileUtils.ln file[:tempfile], self.tmp_filepath
+    else
+      # Move file into tmp location
+      FileUtils.mv file[:tempfile].path, self.tmp_filepath      
+    end
     
     self.read_metadata
     self.status = "original"

@@ -90,6 +90,8 @@ class Videos < Application
   
   # Use: HQ, http/iframe upload
   def upload
+    provides :html, :yaml
+    
     begin
       @video = Video.find(params[:id])
       @video.initial_processing(params[:file])
