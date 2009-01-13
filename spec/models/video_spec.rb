@@ -297,7 +297,6 @@ describe Video do
       @video.stub!(:clipping).and_return(@clipping)
       @video.stub!(:upload_thumbnail_selection)
       @video.stub!(:save)
-      @video.stub!(:add_to_queue)
       @video.stub!(:tmp_filepath).and_return('tmpfile')
       FileUtils.stub!(:rm)
     end
@@ -327,7 +326,6 @@ describe Video do
     end
     
     it "should not add encodings to queue" do
-      @video.should_receive(:add_to_queue).never
       @video.finish_processing_and_queue_encodings
     end
     
@@ -336,44 +334,7 @@ describe Video do
       @video.finish_processing_and_queue_encodings
     end
   end
-  
-  # def read_metadata
-  
-  # Also test create_encoding_for_profile(p) and find_encoding_for_profile(p)
-  it "should create profiles when add_to_queue is called" do
-    profile = mock_profile
-    Profile.should_receive(:query).twice.and_return([mock_profile])
-    Video.should_receive(:query).with("['parent' = 'abc'] intersection ['profile' = 'profile1']").and_return([])
-    # We didn't find a video, so the method will create one now
-    
-    encoding = Video.new('xyz')
-    encoding.should_receive(:status=).with("queued")
-    encoding.should_receive(:filename=).with("xyz.flv")
-    
-    # Attrs from the parent video
-    encoding.should_receive(:parent=).with("abc")
-    encoding.should_receive(:original_filename=).with("original_filename.mov")
-    encoding.should_receive(:duration=).with(100)
-    
-    # Attrs from the profile
-    encoding.should_receive(:profile=).with("profile1")
-    encoding.should_receive(:profile_title=).with("Flash video HI")
-    
-    encoding.should_receive(:container=).with("flv")
-    encoding.should_receive(:width=).with(480)
-    encoding.should_receive(:height=).with(360)
-    encoding.should_receive(:video_bitrate=).with(400)
-    encoding.should_receive(:fps=).with(24)
-    encoding.should_receive(:audio_bitrate=).with(48)
-    encoding.should_receive(:player=).with("flash")
-    
-    encoding.should_receive(:save)
-    
-    Video.should_receive(:new).and_return(encoding)
-    
-    @video.add_to_queue
-  end
-  
+
   describe "show_response" do
     before :each do
       @encoding = Video.new
@@ -503,6 +464,7 @@ describe Video do
         :video_codec => '',
         :video_bitrate_in_bits => (400*1024).to_s, 
         :fps => 24,
+        :cut_options => '',
         :audio_codec => '', 
         :audio_bitrate => '48', 
         :audio_bitrate_in_bits => (48*1024).to_s, 
