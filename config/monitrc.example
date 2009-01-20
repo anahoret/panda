@@ -1,0 +1,47 @@
+## Start monit in background (run as daemon) and check the services at 2-minute intervals.
+set daemon 60
+
+set logfile syslog facility log_daemon
+
+set mailserver localhost
+
+set mail-format { from: monit@panda.example.com }
+
+## You can set the alert recipients here, which will receive the alert for
+## each service. The event alerts may be restricted using the list.
+set alert you@example.com
+
+## Monit has an embedded webserver, which can be used to view the 
+## configuration, actual services parameters or manage the services using the 
+## web interface.
+
+set httpd port 2812 and
+    use address localhost  # only accept connection from localhost
+    allow localhost        # allow localhost to connect to the server and
+    allow admin:monit      # require user 'admin' with password 'monit'
+
+check process panda with pidfile /var/local/www/panda/log/merb.4001.pid
+    group merb
+    start program = "/var/local/www/panda/bin/panda.sh"
+    stop  program = "/bin/kill `cat /var/local/www/panda/log/merb.4001.pid`"
+    if failed host 127.0.0.1 port 4001 protocol http and request "/login"
+        with timeout 10 seconds
+        for 2 times within 3 cycles
+        then restart
+    if 3 restarts within 5 cycles then timeout
+
+check process encoder with pidfile /var/local/www/panda/log/merb.encoder.pid
+   group merb
+   start program = "/var/local/www/panda/bin/encoder.sh"
+   stop  program = "/bin/kill `cat /var/local/www/panda/log/merb.encoder.pid`"
+   if 3 restarts within 5 cycles then timeout
+
+check process notifier with pidfile /var/local/www/panda/log/merb.notifier.pid
+   group merb
+   start program = "/var/local/www/panda/bin/notifier.sh"
+   stop  program = "/bin/kill `cat /var/local/www/panda/log/merb.notifier.pid`"
+   if 3 restarts within 5 cycles then timeout
+
+## It is possible to include the configuration or its parts from other files or
+## directories.
+#  include /etc/monit.d/*
