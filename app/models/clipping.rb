@@ -1,3 +1,4 @@
+require 'image_science'
 # Clipping for a given encoding or parent video.
 # 
 class Clipping
@@ -40,17 +41,23 @@ class Clipping
     t = RVideo::Inspector.new(:file => @video.tmp_filepath)
     t.capture_frame("#{position}%", tmp_path(:screenshot))
   end
-  
+
   def resize
     constrain_to_height = Panda::Config[:thumbnail_height_constrain].to_f
-    
+
     height = constrain_to_height
     width = (@video.width.to_f/@video.height.to_f) * height
     
-    GDResize.new.resize \
-      tmp_path(:screenshot),
-      tmp_path(:thumbnail),
-      [width.to_i, height.to_i]
+    ImageScience.with_image(tmp_path(:screenshot)) do |img|
+      img.resize(width.to_i, height.to_i) do |img2|
+        img2.save tmp_path(:thumbnail)
+      end
+    end
+
+    # GDResize.new.resize \
+    #   tmp_path(:screenshot),
+    #   tmp_path(:thumbnail),
+    #   [width.to_i, height.to_i]
   end
   
   # Uploads this clipping to the default clipping locations on store (default 
