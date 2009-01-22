@@ -219,8 +219,17 @@ class Video < SimpleDB::Base
   
   def upload_thumbnail_selection
     self.thumbnail_percentages.each do |percentage|
-      self.clipping(percentage).upload_to_store
-      self.clipping(percentage).delete_locally
+      begin
+        self.clipping(percentage).upload_to_store
+      rescue
+        Merb.logger.info "Clipping at #{percentage}% wasn't uploaded to store"
+      end
+      
+      begin
+        self.clipping(percentage).delete_locally
+      rescue
+        Merb.logger.info "Clipping at #{percentage}% wasn't deleted locally"
+      end
     end
   end
   
