@@ -469,7 +469,10 @@ class Video < SimpleDB::Base
     params = {"video" => self.show_response.to_yaml}
     
     uri = URI.parse(self.state_update_url)
+
     http = Net::HTTP.new(uri.host, uri.port)
+    http.use_ssl = (uri.port == 443)
+    http.verify_mode = OpenSSL::SSL::VERIFY_NONE
 
     req = Net::HTTP::Post.new(uri.path)
     req.form_data = params
