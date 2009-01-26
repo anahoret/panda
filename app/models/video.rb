@@ -656,7 +656,7 @@ RESPONSE
     
       parent_obj.fetch_from_store
 
-     if self.container == "flv" 
+      if self.container == "flv" 
         self.encode_flv_flash
       elsif self.container == "mp4" and self.audio_codec == "aac"
         self.encode_mp4_aac_flash
@@ -664,9 +664,14 @@ RESPONSE
         self.encode_unknown_format
       end
       
+      Merb.logger.info "Uploading to store"
       self.upload_to_store
+
+      Merb.logger.info "Generating thumbnail selection"
       self.generate_thumbnail_selection
       self.clipping.set_as_default
+
+      Merb.logger.info "Uploading thumbnail selection"
       self.upload_thumbnail_selection
       
       self.notification = 0
