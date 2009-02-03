@@ -119,7 +119,12 @@ class Videos < Application
         @video.finish_processing_and_queue_encodings
       end
 
-      render iframe_params(:location => redirect_url)
+      case content_type
+      when :html
+        render iframe_params(:location => redirect_url)
+      when :yaml
+        {}.to_yaml
+      end
     end
   end
   
