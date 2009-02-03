@@ -256,9 +256,10 @@ class Video < SimpleDB::Base
     # Split out any directory path Windows adds in
     self.original_filename = file[:filename].split("\\\\").last
 
+    # If file comes by paths
     if file[:tempfile].class == String
-      # Make link to file into tmp location
-      FileUtils.ln file[:tempfile], self.tmp_filepath
+      # Copy file into tmp location
+      FileUtils.cp file[:tempfile], self.tmp_filepath
     else
       # Move file into tmp location
       FileUtils.mv file[:tempfile].path, self.tmp_filepath      
