@@ -35,11 +35,11 @@ class Video < SimpleDB::Base
   # ==============
   
   def encoding?
-    ['queued', 'processing', 'success', 'error'].include?(self.status)
+    ['queued', 'processing', 'success', 'error', 'waiting'].include?(self.status)
   end
   
   def parent?
-    ['original', 'empty'].include?(self.status)
+    ['original', 'empty', 'pending'].include?(self.status)
   end
   
   # Finders
@@ -47,7 +47,7 @@ class Video < SimpleDB::Base
   
   # Only parent videos (no encodings)
   def self.all
-    self.query("['status' = 'original'] intersection ['created_at' != ''] sort 'created_at' desc", :load_attrs => true) # TODO: Don't throw an exception if attrs for a record in the search can't be found - it probably means its just been deleted
+    self.query("['status' = 'original' or 'status' = 'pending'] intersection ['created_at' != ''] sort 'created_at' desc", :load_attrs => true) # TODO: Don't throw an exception if attrs for a record in the search can't be found - it probably means its just been deleted
   end
   
   def self.recent_videos
@@ -59,7 +59,7 @@ class Video < SimpleDB::Base
   end
   
   def self.queued_encodings
-    self.query("['status' = 'processing' or 'status' = 'queued']", :load_attrs => true)
+    self.query("['status' = 'processing' or 'status' = 'queued' or 'status' = 'waiting']", :load_attrs => true)
   end
   
   def self.next_job
@@ -266,7 +266,7 @@ class Video < SimpleDB::Base
     end
     
     self.read_metadata
-    self.status = "original"
+    self.status = "pending"
     self.save
   end
   
@@ -282,9 +282,15 @@ class Video < SimpleDB::Base
     self.upload_thumbnail_selection
     
     self.thumbnail_position = self.thumbnail_percentages.first
+    self.status = 'original'
     self.save
     
     FileUtils.rm self.tmp_filepath
+
+    self.class.query("['parent' = '#{self.key}'] intersection ['status' = 'waiting']").each do |v|
+      v.status = 'queued'
+      v.save
+    end
   end
   
   # Reads information about the video into attributes.
@@ -338,7 +344,8 @@ class Video < SimpleDB::Base
 
   def create_encoding(p, options)
     encoding = Video.new
-    encoding.status = 'queued'
+
+    encoding.status = (self.status == 'pending') ? 'waiting' : 'queued'
     encoding.filename = "#{encoding.key}.#{p["container"]}"
     
     # Attrs from the parent video
@@ -396,7 +403,7 @@ class Video < SimpleDB::Base
     }
     
     # Common attributes for originals and encodings
-    if self.status == 'original' or self.encoding?
+    if self.status == 'original' or self.status == 'pending' or self.encoding?
       [:filename, :original_filename, :width, :height, :duration].each do |k|
         r[:video][k] = self.send(k)
       end
@@ -405,7 +412,7 @@ class Video < SimpleDB::Base
     end
     
     # If the video is a parent, also return the data for all its encodings
-    if self.status == 'original'
+    if self.status == 'original' or self.status == 'pending'
       r[:video][:encodings] = self.encodings.map {|e| e.show_response}
       r[:video][:thumbnails] = self.clippings.map { |c| c.filename(:thumbnail) }.join(',')
     end

@@ -34,7 +34,7 @@ describe Video do
   # =======
   
   it "self.all" do
-    Video.should_receive(:query).with("['status' = 'original'] intersection ['created_at' != ''] sort 'created_at' desc", {:load_attrs=>true})
+    Video.should_receive(:query).with("['status' = 'original' or 'status' = 'pending'] intersection ['created_at' != ''] sort 'created_at' desc", {:load_attrs=>true})
     
     Video.all
   end
@@ -52,7 +52,7 @@ describe Video do
   end
   
   it "self.queued_encodings" do
-    Video.should_receive(:query).with("['status' = 'processing' or 'status' = 'queued']", :load_attrs => true)
+    Video.should_receive(:query).with("['status' = 'processing' or 'status' = 'queued' or 'status' = 'waiting']", :load_attrs => true)
     
     Video.queued_encodings
   end
